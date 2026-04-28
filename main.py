@@ -40,14 +40,14 @@ if len(sys.argv) > 1:
 # ── LIVE MODE ─────────────────────────────────────────────────────────────────
 config = load_config()
 
-# Replace these with real input from your survey form / CLI prompt
-user_id = "alice"
+# TEST DATA, FILL OUT WITH OTHER DATA AS NEEDED
+user_id = "negative4"
 responses = {
-    "q1_values_alignment": 5,
-    "q2_communication_style": 3,
-    "q3_lifestyle_pace": 4,
-    "q4_yes_no_question": 2,
-    "q5_humor": 4,
+    "q1_values_alignment": 1,
+    "q2_communication_style": 1,
+    "q3_lifestyle_pace": 1,
+    "q4_yes_no_question": 1,
+    "q5_humor": 1,
 }
 
 # 1. Compute score
