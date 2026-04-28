@@ -1,4 +1,4 @@
-# Contains the core logic for matching the users
+# Contains the alternative core logic for matching the users (update later)
 # Uses weighted Cosine Similarity distance matcher.
 # Each person becomes a numerical vector of their Likert responses, and
 # pathwise similarity scores are calculated between the users, each dimension
@@ -9,6 +9,26 @@ from itertools import combinations
 import numpy as np
 
 
+def assign_tables(scores: list[dict], table_size: int = 4) -> list[dict]:
+    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)
+    total = len(sorted_scores)
+    assignments = []
+
+    for i, person in enumerate(sorted_scores):
+        table_number = i // table_size
+        assignments.append({**person, "table": table_number + 1})
+
+    # if last full table has fewer than table_size people, move them to the previous table
+    remainder = total % table_size
+    if remainder > 0 and total >= table_size:
+        last_full_table = total // table_size
+        for p in assignments:
+            if p["table"] == last_full_table + 1:
+                p["table"] = last_full_table
+    return assignments
+
+
+"""
 # Element-wise multiplication between a person's Likert responses and importance weights.
 # This allows us to represent each person as a weighted vector and perform linear algebra
 # operations on their responses.
@@ -83,3 +103,6 @@ def mutual_matches(matches: dict) -> list[dict]:
                     )
                     seen.add(pair)
     return mutual
+
+
+"""
