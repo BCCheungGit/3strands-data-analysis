@@ -1,3 +1,7 @@
 {
-  "sample_question": 1.0
+  "q1_values_alignment": { "weight": 3.0, "scale_min": 1, "scale_max": 5 },
+  "q2_communication_style": { "weight": 2.5, "scale_min": 1, "scale_max": 5 },
+  "q3_lifestyle_pace": { "weight": 2.0, "scale_min": 1, "scale_max": 7 },
+  "q4_yes_no_question": { "weight": 1.5, "scale_min": 1, "scale_max": 2 },
+  "q5_humor": { "weight": 1.0, "scale_min": 1, "scale_max": 5 }
 }

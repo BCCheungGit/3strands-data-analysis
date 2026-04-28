@@ -1,108 +1,107 @@
-# Contains the alternative core logic for matching the users (update later)
-# Uses weighted Cosine Similarity distance matcher.
-# Each person becomes a numerical vector of their Likert responses, and
-# pathwise similarity scores are calculated between the users, each dimension
-# scaled by its importance in weight.
+from itertools import groupby
 
-from itertools import combinations
 
-import numpy as np
+def compute_score(responses: dict, config: dict) -> float:
+    """
+    Converts a person's Likert responses into a single 0-100 score.
+
+    Each response is normalized to 0-1 using its own scale range before
+    the weight is applied. This ensures questions with different numbers
+    of options (e.g. 1-2 vs 1-7) are compared fairly.
+
+    Args:
+        responses: {"q1_values_alignment": 4, "q4_yes_no_question": 2, ...}
+        config:    {"q1_values_alignment": {"weight": 3.0, "scale_min": 1, "scale_max": 5}, ...}
+
+    Returns:
+        Float score between 0.0 and 100.0
+    """
+    weighted_sum = 0.0
+    total_weight = 0.0
+
+    for q, value in responses.items():
+        if q not in config:
+            raise KeyError(f"Question '{q}' not found in config.")
+
+        q_config = config[q]
+        weight = q_config["weight"]
+        scale_min = q_config["scale_min"]
+        scale_max = q_config["scale_max"]
+
+        if scale_max == scale_min:
+            raise ValueError(
+                f"Question '{q}' has scale_min == scale_max. Check weights.json."
+            )
+
+        # Normalize this response to 0-1 relative to its own scale
+        normalized = (value - scale_min) / (scale_max - scale_min)
+
+        # Clamp to [0, 1] in case of out-of-range input
+        normalized = max(0.0, min(1.0, normalized))
+
+        weighted_sum += normalized * weight
+        total_weight += weight
+
+    if total_weight == 0:
+        raise ValueError("Total weight is zero. Check weights.json.")
+
+    return round((weighted_sum / total_weight) * 100, 2)
 
 
 def assign_tables(scores: list[dict], table_size: int = 4) -> list[dict]:
-    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)
+    """
+    Sorts all participants by score and assigns them to tables.
+
+    People with the most similar scores sit together. If the last group
+    has fewer than table_size people it is merged into the previous table.
+
+    Args:
+        scores:     List of dicts with at least 'user_id' and 'score' keys
+        table_size: Target number of people per table (default 4)
+
+    Returns:
+        Same list with a 'table' key added to each entry
+    """
+    if not scores:
+        return []
+
+    sorted_scores = sorted(scores, key=lambda x: float(x["score"]))
     total = len(sorted_scores)
+
     assignments = []
-
     for i, person in enumerate(sorted_scores):
-        table_number = i // table_size
-        assignments.append({**person, "table": table_number + 1})
+        table_num = (i // table_size) + 1
+        assignments.append({**person, "table": table_num})
 
-    # if last full table has fewer than table_size people, move them to the previous table
+    # Fold remainder into the last full table if it's an incomplete group
     remainder = total % table_size
     if remainder > 0 and total >= table_size:
         last_full_table = total // table_size
         for p in assignments:
             if p["table"] == last_full_table + 1:
                 p["table"] = last_full_table
+
     return assignments
 
 
-"""
-# Element-wise multiplication between a person's Likert responses and importance weights.
-# This allows us to represent each person as a weighted vector and perform linear algebra
-# operations on their responses.
-def weighted_vector(row: np.ndarray, weights: np.ndarray) -> np.ndarray:
-    return row * weights
+def get_table_summary(assignments: list[dict]) -> list[dict]:
+    """
+    Returns a summary of each table: table number, members, and average score.
 
+    Args:
+        assignments: Output of assign_tables()
 
-# measures the angle between two vectors, giving a similarity score between 0 and 1.
-# A score of 1 means the vectors are identical, while a score of 0 means completely orthogonal.
-# TODO: consider using a different distance metric, such as Euclidean distance or Manhattan distance.
-def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
-    denom = np.linalg.norm(a) * np.linalg.norm(b)
-    return (
-        float(np.dot(a, b) / denom) if denom else 0.0
-    )  # guard against division by zero
+    Returns:
+        List of dicts: {"table": int, "members": [...], "avg_score": float}
+    """
+    sorted_a = sorted(assignments, key=lambda x: x["table"])
+    summary = []
 
-
-# Takes in the user data and importance weights, computes the weighted vectors for each user,
-# and calculates the cosine similarity between all pairs of users. The results are returned
-# as a dictionary mapping each user ID (maybe name) to a list of their top N most similar matches,
-# along with their similarity scores.
-def compute_matches(df, weights: dict, top_n: int = 5) -> dict:
-    weight_vec = np.array(list(weights.values()))
-    question_cols = list(weights.keys())
-    vectors = {
-        row["user_id"]: weighted_vector(
-            row[question_cols].values.astype(float), weight_vec
+    for table_num, members in groupby(sorted_a, key=lambda x: x["table"]):
+        members = list(members)
+        avg = sum(float(m["score"]) for m in members) / len(members)
+        summary.append(
+            {"table": table_num, "members": members, "avg_score": round(avg, 2)}
         )
-        for _, row in df.iterrows()
-    }
-    ids = list(vectors.keys())
-    scores = []
-    for a, b in combinations(ids, 2):
-        score = cosine_similarity(vectors[a], vectors[b])
-        scores.append({"person_a": a, "person_b": b, "similarity": score})
-    results = {}
-    for id in ids:
-        person_scores = [
-            s for s in scores if s["person_a"] == id or s["person_b"] == id
-        ]
-        person_scores.sort(key=lambda x: x["score"], reverse=True)
-        results[id] = person_scores[:top_n]
-    return results
 
-
-# This function takes the output of compute_matches and filters it to include only mutual matches.
-def mutual_matches(matches: dict) -> list[dict]:
-    seen = set()
-    mutual = []
-    for person, top in matches.items():
-        for match in top:
-            other = (
-                match["person_b"] if match["person_a"] == person else match["person_a"]
-            )
-            pair = tuple(sorted((person, other)))
-            if pair not in seen:
-                other_tops = [
-                    (
-                        match2["person_b"]
-                        if match2["person_a"] == other
-                        else match2["person_a"]
-                    )
-                    for match2 in matches[other]
-                ]
-                if person in other_tops:
-                    mutual.append(
-                        {
-                            "person_a": pair[0],
-                            "person_b": pair[1],
-                            "score": match["score"],
-                        }
-                    )
-                    seen.add(pair)
-    return mutual
-
-
-"""
+    return summary
