@@ -68,5 +68,22 @@ python main.py config/survey_responses.xlsx
  
 ---
 
+## How scoring works
+ 
+1. Each response is normalized to 0–1 using its own scale: `(value - scale_min) / (scale_max - scale_min)`
+2. The normalized value is multiplied by the question's weight
+3. The weighted sum is divided by the total weight and scaled to 0–100
+This means questions with more weight pull the final score more, and different scale lengths don't skew results.
 
+Most of the scoring logic can be found in `matcher.py`, and the weights/scales are defined in `config/weights.json`.
+
+---
+ 
+## How table assignment works
+ 
+1. All participants are sorted by score
+2. Groups of 4 (or your chosen `table_size`) are taken in order — so the most similar scores sit together
+3. If the last group is incomplete, those people are merged into the previous table
+4. Every time a new person submits, all assignments are recomputed
+Table assignments should be considered provisional until registration closes.
 
