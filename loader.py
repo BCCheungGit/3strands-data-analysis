@@ -20,6 +20,8 @@ def load_survey(path: str, config: dict) -> pd.DataFrame:
     """
     df = pd.read_excel(path)
 
+    df.columns = df.columns.str.lower()
+
     if "user_id" not in df.columns:
         if "name" not in df.columns or "timestamp" not in df.columns:
             raise ValueError(
