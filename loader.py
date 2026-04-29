@@ -25,10 +25,16 @@ def load_survey(path: str, config: dict) -> pd.DataFrame:
             raise ValueError(
                 "Spreadsheet must have either 'user_id' column or both 'name' and 'timestamp' columns."
             )
+        #        df["user_id"] = (
+        #            df["name"].astype(str).str.strip()
+        #            + "_"
+        #            + df["timestamp"].astype(str).str.strip()
+        #        )
+        # Formats the timestamp to be more compact and consistent, removing spaces and special characters
         df["user_id"] = (
             df["name"].astype(str).str.strip()
             + "_"
-            + df["timestamp"].astype(str).str.strip()
+            + pd.to_datetime(df["timestamp"]).dt.strftime("%Y%m%d_%H%M%S")
         )
 
     identity_cols = ["user_id", "name", "age"]
