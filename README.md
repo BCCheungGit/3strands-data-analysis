@@ -52,13 +52,13 @@ python main.py
 Each run saves the person's score and reprints updated table assignments.
  
 ## Batch mode — full Excel file at once
+
+Format of excel file:
  
-Your Excel file must have a `user_id` column and one column per question (named to match `weights.json`):
- 
-| user_id | q1_values_alignment | q2_communication_style | ... |
-|---------|--------------------|-----------------------|-----|
-| alice   | 5                  | 3                     | ... |
-| bob     | 4                  | 4                     | ... |
+| Timestamp        | Name    | q1_values_alignment | q2_communication_style | ... |
+|------------------|---------|---------------------|-----------------------|-----|
+|1/16/2026 17:18:14| alice   | 5                   | 3                     | ... |
+|1/16/2026 17:23:14| bob     | 4                   | 4                     | ... |
  
 Then run:
  
