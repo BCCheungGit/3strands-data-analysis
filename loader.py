@@ -33,13 +33,14 @@ def load_survey(path: str, config: dict) -> pd.DataFrame:
         #            + df["timestamp"].astype(str).str.strip()
         #        )
         # Formats the timestamp to be more compact and consistent, removing spaces and special characters
+        # Then creates a user_id by combining the name and formatted timestamp, ensuring unique identifiers for each respondent
         df["user_id"] = (
             df["name"].astype(str).str.strip()
             + "_"
             + pd.to_datetime(df["timestamp"]).dt.strftime("%Y%m%d_%H%M%S")
         )
 
-    identity_cols = ["user_id", "name", "age"]
+    identity_cols = ["user_id", "name", "age", "email"]
     question_cols = list(config.keys())
     required_cols = identity_cols + question_cols
 
