@@ -55,10 +55,10 @@ Each run saves the person's score and reprints updated table assignments.
 
 Format of excel file:
  
-| Timestamp        | Name    | q1_values_alignment | q2_communication_style | ... |
-|------------------|---------|---------------------|-----------------------|-----|
-|1/16/2026 17:18:14| alice   | 5                   | 3                     | ... |
-|1/16/2026 17:23:14| bob     | 4                   | 4                     | ... |
+| Timestamp        | Name        | Age |  q1_values_alignment | q2_communication_style | ... |
+|------------------|-------------|-----|---------------------|-----------------------|-----|
+|1/16/2026 17:18:14| alice chen  |25   | 5                   | 3                     | ... |
+|1/16/2026 17:23:14| bob wong    |30   | 4                   | 4                     | ... |
  
 Then run:
  
