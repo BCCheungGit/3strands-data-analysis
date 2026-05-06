@@ -19,7 +19,7 @@ import json
 import sys
 
 from matcher import compute_score
-from output import export_from_batch, export_tables, print_tables
+from output import export_all_rounds, export_from_batch, print_all_rounds
 from store import add_participant_and_reassign
 
 
@@ -37,11 +37,13 @@ if len(sys.argv) > 1:
     sys.exit(0)
 
 
+"""
 # ── LIVE MODE ─────────────────────────────────────────────────────────────────
 config = load_config()
 
 # TEST DATA, FILL OUT WITH OTHER DATA AS NEEDED
 user_id = "negative4"
+gender = "F"
 responses = {
     "q1_values_alignment": 1,
     "q2_communication_style": 1,
@@ -50,13 +52,9 @@ responses = {
     "q5_humor": 1,
 }
 
-# 1. Compute score
 score = compute_score(responses, config)
-print(f"\n{user_id}'s compatibility score: {score}/100")
+all_rounds = add_participant_and_reassign(user_id, score, gender, table_size=4)
 
-# 2. Save and get updated table assignments
-assignments = add_participant_and_reassign(user_id, score, table_size=4)
-
-# 3. Show and export
-print_tables(assignments)
-export_tables(assignments)
+print_all_rounds(all_rounds)
+export_all_rounds(all_rounds)
+"""

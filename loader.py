@@ -9,6 +9,8 @@ def load_survey(path: str, config: dict) -> pd.DataFrame:
       - A 'timestamp' column with the submission time
       - A 'name' column identifying each respondent by name
       - An 'age' column identifying each respondent's age
+      - An 'email' column identifying each respondent's email
+      - A 'gender' column identifying each respondent's gender
       - One column per question, named to match the keys in config
 
     Args:
@@ -16,7 +18,7 @@ def load_survey(path: str, config: dict) -> pd.DataFrame:
         config: Nested dict from weights.json, keyed by question name
 
     Returns:
-        DataFrame with user_id + question columns, nulls dropped
+        DataFrame with user_id, timestamp, gender, age + question columns, nulls dropped
     """
     df = pd.read_excel(path)
 
@@ -35,8 +37,8 @@ def load_survey(path: str, config: dict) -> pd.DataFrame:
             + pd.to_datetime(df["timestamp"]).dt.strftime("%Y%m%d_%H%M%S")
         )
 
-    identity_cols = ["user_id", "name", "age", "email"]
-    question_cols = list(config.keys())
+    identity_cols = ["user_id", "name", "age", "email", "gender"]
+    question_cols = [c.lower() for c in config.keys()]
     required_cols = identity_cols + question_cols
 
     missing = [c for c in required_cols if c not in df.columns]

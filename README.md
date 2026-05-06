@@ -89,7 +89,7 @@ Table assignments should be considered provisional until registration closes.
 
 
 ## TODO
-- [ ] Four rounds with different pairings of different gender (same gender can overlap if needed)
+- [x] Four rounds with different pairings of different gender (same gender can overlap if needed)
 - [ ] Create the form ui (likert scale, similar to matchbox)
     - [ ] integrate into current threestrands website somehow
         - [ ] figure out how it works 

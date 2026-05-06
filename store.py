@@ -3,10 +3,10 @@ import os
 from datetime import datetime
 
 SCORES_FILE = "data/scores.csv"
-FIELDNAMES = ["user_id", "score", "timestamp"]
+FIELDNAMES = ["user_id", "gender", "score", "timestamp"]
 
 
-def save_score(user_id: str, score: float) -> None:
+def save_score(user_id: str, gender: str, score: float) -> None:
     """
     Appends a participant's score to the scores CSV.
     Creates the file and header if it doesn't exist yet.
@@ -24,6 +24,7 @@ def save_score(user_id: str, score: float) -> None:
     for row in existing:
         if row["user_id"] == user_id:
             row["score"] = score
+            row["gender"] = gender
             row["timestamp"] = datetime.now().isoformat()
             updated = True
             break
@@ -44,6 +45,7 @@ def save_score(user_id: str, score: float) -> None:
             writer.writerow(
                 {
                     "user_id": user_id,
+                    "gender": gender,
                     "score": score,
                     "timestamp": datetime.now().isoformat(),
                 }

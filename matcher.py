@@ -48,40 +48,75 @@ def compute_score(responses: dict, config: dict) -> float:
     return round((weighted_sum / total_weight) * 100, 2)
 
 
-def assign_tables(scores: list[dict], table_size: int = 4) -> list[dict]:
+def assign_rounds(
+    scores: list[dict], table_size: int = 4, num_rounds: int = 4
+) -> dict[int, list[dict]]:
     """
-    Sorts all participants by score and assigns them to tables.
+    Splits participants by gender, sorts each group by score,
+    then rotates female assignments each round so people meet
+    different partners while staying score-similar.
 
-    People with the most similar scores sit together. If the last group
-    has fewer than table_size people it is merged into the previous table.
-
-    Args:
-        scores:     List of dicts with at least 'user_id' and 'score' keys
-        table_size: Target number of people per table (default 4)
-
-    Returns:
-        Same list with a 'table' key added to each entry
+    Each table seats (table_size // 2) males + (table_size // 2) females.
+    Returns: {round_num: [{"table": int, "user_id": ..., "gender": ..., "score": ...}]}
     """
-    if not scores:
-        return []
 
-    sorted_scores = sorted(scores, key=lambda x: float(x["score"]))
-    total = len(sorted_scores)
+    for i, entry in enumerate(scores):
+        if "gender" not in entry:
+            print(
+                f"Error at index {i}: Missing 'gender' key. Available keys: {entry.keys()}"
+            )
+    males = sorted(
+        [p for p in scores if p["gender"].upper() == "M"],
+        key=lambda x: float(x["score"]),
+    )
+    females = sorted(
+        [p for p in scores if p["gender"].upper() == "F"],
+        key=lambda x: float(x["score"]),
+    )
 
-    assignments = []
-    for i, person in enumerate(sorted_scores):
-        table_num = (i // table_size) + 1
-        assignments.append({**person, "table": table_num})
+    if not males or not females:
+        raise ValueError("Need at least one male and one female participant.")
 
-    # Fold remainder into the last full table if it's an incomplete group
-    remainder = total % table_size
-    if remainder > 0 and total >= table_size:
-        last_full_table = total // table_size
-        for p in assignments:
-            if p["table"] == last_full_table + 1:
-                p["table"] = last_full_table
+    # Balance group sizes by trimming to the smaller group
+    # (you can change this to keep extras in a waiting list instead)
+    min_size = min(len(males), len(females))
+    males = males[:min_size]
+    females = females[:min_size]
 
-    return assignments
+    half = table_size // 2  # e.g. 2 males + 2 females per table
+    all_rounds = {}
+
+    for round_num in range(1, num_rounds + 1):
+        # Rotate females by (round_num - 1) * half positions
+        # so each round produces a different pairing
+        rotation = ((round_num - 1) * half) % min_size
+        rot_females = females[rotation:] + females[:rotation]
+
+        # Interleave: [M1, M2, F1, F2, M3, M4, F3, F4, ...]
+        # then chunk into tables
+        combined = []
+        for i in range(min_size):
+            combined.append(males[i])
+            combined.append(rot_females[i])
+
+        # Group into tables of table_size
+        assignments = []
+        table_num = 1
+        for i in range(0, len(combined), table_size):
+            chunk = combined[i : i + table_size]
+            # If last chunk is too small, merge into previous table
+            if len(chunk) < table_size and assignments:
+                for p in chunk:
+                    assignments[-1]["members"] if False else None
+                    assignments.append({**p, "table": table_num - 1})
+            else:
+                for p in chunk:
+                    assignments.append({**p, "table": table_num})
+                table_num += 1
+
+        all_rounds[round_num] = assignments
+
+    return all_rounds
 
 
 def get_table_summary(assignments: list[dict]) -> list[dict]:
