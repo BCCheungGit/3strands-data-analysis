@@ -49,7 +49,7 @@ def compute_score(responses: dict, config: dict) -> float:
 
 
 def assign_rounds(
-    scores: list[dict], table_size: int = 4, num_rounds: int = 4
+    scores: list[dict], table_size: int = 4, num_rounds: int = 2
 ) -> dict[int, list[dict]]:
     """
     Splits participants by gender, sorts each group by score,
