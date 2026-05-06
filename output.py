@@ -20,7 +20,7 @@ def export_from_batch(path: str, config: dict, table_size: int = 4) -> None:
         gender = row.get("gender", "U")
         scored.append({"user_id": row["user_id"], "score": score, "gender": gender})
 
-    all_rounds = assign_rounds(scored, table_size=table_size, num_rounds=2)
+    all_rounds = assign_rounds(scored, table_size=table_size)
     print_all_rounds(all_rounds)
     export_all_rounds(all_rounds)
 
