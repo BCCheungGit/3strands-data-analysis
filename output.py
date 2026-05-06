@@ -51,7 +51,7 @@ def export_tables(assignments: list[dict], path: str = "results/tables.xlsx") ->
     df = pd.DataFrame(assignments)
 
     # Ensure consistent column order
-    cols = ["table", "user_id", "score", "timestamp"]
+    cols = ["table", "user_id", "email", "score", "timestamp"]
     cols = [c for c in cols if c in df.columns]
     df = df[cols].sort_values(["table", "score"])
 

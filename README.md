@@ -87,3 +87,19 @@ Most of the scoring logic can be found in `matcher.py`, and the weights/scales a
 4. Every time a new person submits, all assignments are recomputed
 Table assignments should be considered provisional until registration closes.
 
+
+## TODO
+- [ ] Four rounds with different pairings of different gender (same gender can overlap if needed)
+- [ ] Create the form ui (likert scale, similar to matchbox)
+    - [ ] integrate into current threestrands website somehow
+        - [ ] figure out how it works 
+            - password system?
+            - fill out once per person?
+            - One time code? when user signs up 
+                - check out Luma API
+            - Security
+        - [ ] Use threestrands colors
+- [ ] Gender question 
+
+
+
